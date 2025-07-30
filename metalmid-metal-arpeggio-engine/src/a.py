@@ -1,5 +1,6 @@
 import os
 import random
+import torch
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 from concurrent.futures import ProcessPoolExecutor, as_completed
@@ -33,14 +34,18 @@ def chord_pattern(index: int) -> Path:
         "Diminished", "Minor", "Major", "Minor", "Major", "Major", "Minor"
     ]
 
-    root_note = random.choice(chromatic_scale)
+    device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
+    root_index = torch.randint(0, len(chromatic_scale), (1,), device=device).item()
+    root_note = chromatic_scale[root_index]
     root_semitone = note_to_semitone[root_note]
-    locrian_scale = [semitone_to_note[(root_semitone + i) % 12] for i in locrian_intervals]
+    intervals_tensor = torch.tensor(locrian_intervals, device=device)
+    locrian_scale = [semitone_to_note[(root_semitone + i.item()) % 12] for i in intervals_tensor]
 
     metal_locrian_progressions = [
         [0, 6, 5, 4], [0, 3, 1, 4], [0, 6, 0], [0, 1, 3, 5]
     ]
-    progression_degrees = random.choice(metal_locrian_progressions)
+    idx = torch.randint(0, len(metal_locrian_progressions), (1,), device=device).item()
+    progression_degrees = metal_locrian_progressions[idx]
 
     duration = time_value_durations["eighth_note"]
     steps_per_bar = 4

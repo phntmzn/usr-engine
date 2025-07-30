@@ -1,4 +1,0 @@
-numpy
-tqdm
-midiutil
-pyobjc-framework-Metal
